@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "CampusConnect",
+    "slug": "campusconnect-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "scheme": "campusconnect",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#4B2E83"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.campusconnect.mobile"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#4B2E83"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.campusconnect.mobile"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": "Allow $(PRODUCT_NAME) to use Face ID to authenticate."
+        }
+      ]
+    ],
+    "extra": {
+      "supabaseUrl": "https://embxqyhzncdvavwctbtw.supabase.co",
+      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtYnhxeWh6bmNkdmF2d2N0YnR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA4MTE1NTUsImV4cCI6MjA3NjM4NzU1NX0.0KRNOo6G47TBmUKa_1MUUGu_0lK5-Y8SxKtFyTzy7vA"
+    }
+  }
+}
