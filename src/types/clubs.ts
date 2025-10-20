@@ -1,17 +1,22 @@
 // Club-related types
+import type { Interest } from './common'
+import type { User } from './users'
+import type { Event } from './events'
 export interface Club {
   id: string
   name: string
   slug: string
   description: string | null
-  contact_email: string | null
-  website_url: string | null
-  instagram_url: string | null
-  discord_url: string | null
-  profile_image_url: string | null
-  cover_image_url: string | null
-  visibility: 'public' | 'campus_only'
-  status: 'pending' | 'approved' | 'suspended' | 'archived'
+  contact_email?: string | null
+  website_url?: string | null
+  instagram_url?: string | null
+  // optional handle used in UI fixtures
+  instagram_handle?: string | null
+  discord_url?: string | null
+  profile_image_url?: string | null
+  cover_image_url?: string | null
+  visibility?: 'public' | 'campus_only'
+  status?: 'pending' | 'approved' | 'suspended' | 'archived'
   created_at: string
   updated_at: string
   // Extended fields for UI
@@ -20,7 +25,14 @@ export interface Club {
   interests?: Interest[]
   follower_count?: number
   is_following?: boolean
+  is_active?: boolean
+  member_count?: number
+  event_count?: number
+  upcoming_events?: any[]
 }
+
+// Re-export Event so files importing from '@/types/clubs' can access it
+export type { Event }
 
 export interface ClubMember {
   club_id: string

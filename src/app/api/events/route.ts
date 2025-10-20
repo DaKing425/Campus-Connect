@@ -4,9 +4,9 @@ import { eventFormSchema, validateFormData } from '@/lib/utils/validation'
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient()
+  const supabase = await createClient()
     const { searchParams } = new URL(request.url)
-    
+
     // Parse query parameters
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '20')
@@ -15,40 +15,16 @@ export async function GET(request: NextRequest) {
     const club = searchParams.get('club')
     const search = searchParams.get('search')
     const upcoming = searchParams.get('upcoming') === 'true'
-    
-    let query = supabase
-      .from('events')
-      .select(`
-        *,
-        club:clubs(*),
-        venue:venues(*),
-        categories:event_categories(category:categories(*)),
-        interests:event_interests(interest:interests(*))
-      `)
-      .eq('status', 'approved')
-      .order('start_time', { ascending: true })
 
-    // Apply filters
+    // Build server-side query with filters and pagination
+    let query = supabase.from('events').select(`
+      *,
+      categories:event_categories(category:categories(*)),
+      interests:event_interests(interest:interests(*))
+    `)
+
     if (upcoming) {
       query = query.gte('start_time', new Date().toISOString())
-    }
-
-    if (category) {
-      query = query.in('id', 
-        supabase
-          .from('event_categories')
-          .select('event_id')
-          .eq('category_id', category)
-      )
-    }
-
-    if (interest) {
-      query = query.in('id',
-        supabase
-          .from('event_interests')
-          .select('event_id')
-          .eq('interest_id', interest)
-      )
     }
 
     if (club) {
@@ -56,37 +32,33 @@ export async function GET(request: NextRequest) {
     }
 
     if (search) {
-      query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`)
+      query = query.ilike('title', `%${search}%`).or(`description.ilike.%${search}%`)
     }
 
     // Apply pagination
     const from = (page - 1) * limit
     const to = from + limit - 1
-    query = query.range(from, to)
 
-    const { data: events, error } = await query
+    const { data: eventsData, error } = await (query.range(from, to) as any)
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
-    }
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-    // Transform the data
-    const transformedEvents = events?.map(event => ({
-      ...event,
-      categories: event.categories?.map((ec: any) => ec.category).filter(Boolean) || [],
-      interests: event.interests?.map((ei: any) => ei.interest).filter(Boolean) || [],
-    })) || []
+    const transformed = (eventsData || []).map((e: any) => ({
+      ...e,
+      categories: (e.categories || []).map((ec: any) => ec.category || ec.category_id).filter(Boolean),
+      interests: (e.interests || []).map((ei: any) => ei.interest || ei.interest_id).filter(Boolean),
+    }))
 
-    return NextResponse.json({ data: transformedEvents })
-  } catch (error) {
-    console.error('Error fetching events:', error)
+    return NextResponse.json({ data: transformed })
+  } catch (err) {
+    console.error('Error fetching events:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient()
+  const supabase = await createClient()
     
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -115,9 +87,9 @@ export async function POST(request: NextRequest) {
         created_by: user.id,
         slug: eventData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
         status: 'pending_approval',
-      }])
+      } as any] as any[])
       .select()
-      .single()
+      .single() as any
 
     if (eventError) {
       return NextResponse.json({ error: eventError.message }, { status: 500 })
@@ -128,7 +100,7 @@ export async function POST(request: NextRequest) {
       const categoryInserts = eventData.category_ids.map(categoryId => ({
         event_id: event.id,
         category_id: categoryId
-      }))
+      })) as any[]
 
       const { error: categoryError } = await supabase
         .from('event_categories')
@@ -144,7 +116,7 @@ export async function POST(request: NextRequest) {
       const interestInserts = eventData.interest_ids.map(interestId => ({
         event_id: event.id,
         interest_id: interestId
-      }))
+      })) as any[]
 
       const { error: interestError } = await supabase
         .from('event_interests')

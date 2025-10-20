@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient()
+  const supabase = await createClient()
     
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -19,12 +19,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if event exists and is approved
-    const { data: event, error: eventError } = await supabase
+    const evRes = await supabase
       .from('events')
       .select('*')
       .eq('id', event_id)
       .eq('status', 'approved')
-      .single()
+      .single() as any
+
+    const event = evRes.data as any
+    const eventError = evRes.error as any
 
     if (eventError || !event) {
       return NextResponse.json({ error: 'Event not found' }, { status: 404 })
@@ -41,23 +44,27 @@ export async function POST(request: NextRequest) {
     }
 
     // Check existing RSVP
-    const { data: existingRSVP } = await supabase
+    const existingRes = await supabase
       .from('rsvps')
       .select('*')
       .eq('user_id', user.id)
       .eq('event_id', event_id)
-      .single()
+      .single() as any
+
+    const existingRSVP = existingRes.data as any
 
     if (existingRSVP && existingRSVP.status !== 'cancelled') {
       return NextResponse.json({ error: 'Already RSVP\'d to this event' }, { status: 400 })
     }
 
     // Check capacity and waitlist
-    const { data: rsvpCount } = await supabase
+    const rsvpCountRes = await supabase
       .from('rsvps')
       .select('*', { count: 'exact' })
       .eq('event_id', event_id)
-      .eq('status', 'going')
+      .eq('status', 'going') as any
+
+    const rsvpCount = rsvpCountRes.data as any[]
 
     const currentCount = rsvpCount?.length || 0
     const capacity = event.capacity
@@ -73,12 +80,13 @@ export async function POST(request: NextRequest) {
         finalStatus = 'waitlisted'
         
         // Get waitlist position
-        const { data: waitlistCount } = await supabase
+        const waitlistRes = await supabase
           .from('rsvps')
           .select('*', { count: 'exact' })
           .eq('event_id', event_id)
-          .eq('status', 'waitlisted')
-        
+          .eq('status', 'waitlisted') as any
+
+        const waitlistCount = waitlistRes.data as any[]
         waitlistPosition = (waitlistCount?.length || 0) + 1
       } else {
         return NextResponse.json({ error: 'Event is full' }, { status: 400 })
@@ -99,25 +107,25 @@ export async function POST(request: NextRequest) {
     let result
     if (existingRSVP) {
       // Update existing RSVP
-      const { data, error } = await supabase
+      const upRes = await supabase
         .from('rsvps')
-        .update(rsvpData)
+        .update(rsvpData as any)
         .eq('id', existingRSVP.id)
         .select()
-        .single()
+        .single() as any
 
-      if (error) throw error
-      result = data
+      if (upRes.error) throw upRes.error
+      result = upRes.data
     } else {
       // Create new RSVP
-      const { data, error } = await supabase
+      const insRes = await supabase
         .from('rsvps')
-        .insert([rsvpData])
+        .insert([rsvpData] as any[])
         .select()
-        .single()
+        .single() as any
 
-      if (error) throw error
-      result = data
+      if (insRes.error) throw insRes.error
+      result = insRes.data
     }
 
     return NextResponse.json({ data: result })
@@ -129,7 +137,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = createClient()
+  const supabase = await createClient()
     
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -171,7 +179,34 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: updateError.message }, { status: 500 })
     }
 
-    // TODO: Handle waitlist promotion if this was a confirmed RSVP
+    // If this RSVP was a confirmed 'going' RSVP, promote the first waitlisted attendee
+    try {
+      if (rsvp.status === 'going') {
+        const waitlistedRes = await supabase
+          .from('rsvps')
+          .select('*')
+          .eq('event_id', rsvp.event_id)
+          .eq('status', 'waitlisted')
+          .order('rsvp_time', { ascending: true })
+          .limit(1)
+
+        if (!waitlistedRes.error && Array.isArray(waitlistedRes.data) && waitlistedRes.data.length > 0) {
+          const promote = waitlistedRes.data[0]
+
+          // Promote to 'going'
+          const promoteRes = await supabase
+            .from('rsvps')
+            .update({ status: 'going', waitlist_position: null, promotion_expires_at: null })
+            .eq('id', promote.id)
+            .eq('status', 'waitlisted')
+
+          // ignore promotion errors but log them
+          if (promoteRes.error) console.error('Failed to promote waitlisted user:', promoteRes.error)
+        }
+      }
+    } catch (e) {
+      console.error('Error during waitlist promotion:', e)
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { EventDetails } from '@/components/events/RSVPButton'
 import { supabase } from '@/lib/supabase/client'
+const sb = supabase as any
 import { Event, RSVP } from '@/types/events'
 import { ArrowLeft, Calendar, Share2 } from 'lucide-react'
 
@@ -18,6 +19,8 @@ export default function EventDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // fetchEvent is stable in this component scope; intentional to run when eventSlug changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchEvent()
   }, [eventSlug])
@@ -28,7 +31,7 @@ export default function EventDetailPage() {
       setError(null)
 
       // Fetch event with related data
-      const { data: eventData, error: eventError } = await supabase
+  const { data: eventData, error: eventError } = await sb
         .from('events')
         .select(`
           *,
@@ -53,7 +56,7 @@ export default function EventDetailPage() {
       setEvent(transformedEvent)
 
       // Fetch user's RSVP if logged in
-      const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user } } = await sb.auth.getUser()
       if (user) {
         const { data: rsvpData, error: rsvpError } = await supabase
           .from('rsvps')
@@ -85,7 +88,7 @@ export default function EventDetailPage() {
       try {
         await navigator.share({
           title: event?.title,
-          text: event?.summary || event?.description,
+          text: String(event?.summary ?? event?.description ?? ''),
           url: window.location.href,
         })
       } catch (err) {
@@ -176,7 +179,7 @@ export default function EventDetailPage() {
         {/* Event Details */}
         <EventDetails
           event={event}
-          userRSVP={userRSVP}
+          userRSVP={userRSVP ?? undefined}
           onRSVPChange={handleRSVPChange}
         />
 

@@ -28,7 +28,7 @@ export default function LoginPage() {
     // Validate email
     const validation = uwEmailSchema.safeParse(email)
     if (!validation.success) {
-      setError('Please enter a valid UW email address (@uw.edu)')
+    setError('Please enter a valid UW email address (@uw.edu)')
       setLoading(false)
       return
     }
@@ -118,7 +118,7 @@ export default function LoginPage() {
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            Don't have a UW email?{' '}
+            Don&#39;t have a UW email?{' '}
             <Link href="/contact" className="text-husky-purple hover:underline">
               Contact support
             </Link>

@@ -1,10 +1,14 @@
 // Event-related types
+import type { Venue, Category, Interest, RSVP } from './common'
+import type { Club } from './clubs'
+import type { User } from './users'
 export interface Event {
   id: string
   club_id: string | null
   title: string
   slug: string
-  summary: string | null
+  // allow undefined or null summary in some UI flows
+  summary?: string | null
   description: string | null
   start_time: string
   end_time: string
@@ -35,7 +39,12 @@ export interface Event {
   interests?: Interest[]
   rsvp_count?: number
   user_rsvp?: RSVP
+  // Additional helpers used in UI
+  creator?: User
 }
+
+// Re-export RSVP from common so other modules can import from '@/types/events'
+export type { RSVP } from './common'
 
 export interface EventFormData {
   title: string

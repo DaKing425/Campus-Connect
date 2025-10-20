@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { supabase } from '@/lib/supabase/client'
+const sb = supabase as any
 import { useAuth } from '@/hooks/useAuth'
 import { Event, RSVP } from '@/types/events'
 import { Calendar, Users, Clock, MapPin, ExternalLink } from 'lucide-react'
@@ -37,7 +38,7 @@ export function RSVPButton({ event, userRSVP, onRSVPChange }: RSVPButtonProps) {
     try {
       if (userRSVP) {
         // Update existing RSVP
-        const { data, error } = await supabase
+  const { data, error } = await sb
           .from('rsvps')
           .update({
             status,
@@ -54,7 +55,7 @@ export function RSVPButton({ event, userRSVP, onRSVPChange }: RSVPButtonProps) {
         onRSVPChange?.(data)
       } else {
         // Create new RSVP
-        const { data, error } = await supabase
+        const { data, error } = await sb
           .from('rsvps')
           .insert({
             user_id: user.id,
@@ -83,7 +84,7 @@ export function RSVPButton({ event, userRSVP, onRSVPChange }: RSVPButtonProps) {
     setError(null)
 
     try {
-      const { error } = await supabase
+      const { error } = await sb
         .from('rsvps')
         .update({
           status: 'cancelled',
@@ -127,8 +128,8 @@ export function RSVPButton({ event, userRSVP, onRSVPChange }: RSVPButtonProps) {
     return (
       <div className="text-center py-4">
         <p className="text-gray-500">
-          {isPast ? 'This event has ended' : 'RSVPs are not available'}
-        </p>
+            {isPast ? 'This event has ended' : 'RSVPs are not available'}
+          </p>
       </div>
     )
   }
@@ -168,7 +169,7 @@ export function RSVPButton({ event, userRSVP, onRSVPChange }: RSVPButtonProps) {
         <Card className="border-orange-200 bg-orange-50">
           <CardContent className="p-4">
             <p className="text-orange-800 text-sm">
-              You're #{userRSVP.waitlist_position} on the waitlist
+              You&#39;re #{userRSVP.waitlist_position} on the waitlist
             </p>
           </CardContent>
         </Card>
@@ -216,7 +217,7 @@ export function EventDetails({ event, userRSVP, onRSVPChange }: EventDetailsProp
             <div className="flex items-center text-gray-600">
               <Calendar className="h-5 w-5 mr-3 text-husky-purple" />
               <div>
-                <p className="font-medium">{formatEventDateTime(event.start_time, event.timezone)}</p>
+                <p className="font-medium">{formatEventDateTime(event.start_time)}</p>
                 <p className="text-sm">Duration: {getEventDuration(event.start_time, event.end_time)}</p>
               </div>
             </div>

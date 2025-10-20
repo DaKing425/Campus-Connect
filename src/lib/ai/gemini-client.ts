@@ -1,7 +1,19 @@
 // Google Gemini AI integration for CampusConnect
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!)
+const GOOGLE_AI_API_KEY = process.env.GOOGLE_AI_API_KEY
+let genAI: GoogleGenerativeAI | null = null
+
+if (GOOGLE_AI_API_KEY) {
+  try {
+    genAI = new GoogleGenerativeAI(GOOGLE_AI_API_KEY)
+  } catch (err) {
+    console.warn('Failed to initialize GoogleGenerativeAI client:', err)
+    genAI = null
+  }
+} else {
+  console.warn('GOOGLE_AI_API_KEY is not set; AI features will be disabled')
+}
 
 export interface AIRecommendationRequest {
   user_id: string
@@ -43,7 +55,8 @@ export interface AIModerationResponse {
 // Event summarization using Gemini
 export async function summarizeEventContent(request: AISummarizationRequest): Promise<AISummarizationResponse> {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+  if (!genAI) throw new Error('AI client not initialized')
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
     
     const prompt = `
     Analyze the following ${request.type} and provide:
@@ -86,7 +99,8 @@ export async function summarizeEventContent(request: AISummarizationRequest): Pr
 // Content moderation using Gemini
 export async function moderateContent(request: AIModerationRequest): Promise<AIModerationResponse> {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+  if (!genAI) throw new Error('AI client not initialized')
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
     
     const prompt = `
     Review this ${request.content_type} for appropriateness in a university campus environment.
@@ -135,7 +149,8 @@ export async function moderateContent(request: AIModerationRequest): Promise<AIM
 // Generate personalized event recommendations
 export async function generateRecommendations(request: AIRecommendationRequest): Promise<AIRecommendation[]> {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+  if (!genAI) throw new Error('AI client not initialized')
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
     
     const prompt = `
     Based on the user's profile, generate personalized event recommendations for a university student.
@@ -181,10 +196,10 @@ export async function generateRecommendations(request: AIRecommendationRequest):
 // Generate semantic search embeddings
 export async function generateEmbedding(text: string): Promise<number[]> {
   try {
-    const model = genAI.getGenerativeModel({ model: "text-embedding-004" })
-    
-    const result = await model.embedContent(text)
-    return result.embedding.values
+  if (!genAI) return []
+  const model = genAI.getGenerativeModel({ model: "text-embedding-004" })
+  const result = await model.embedContent(text)
+  return result.embedding.values || []
   } catch (error) {
     console.error('Error generating embedding:', error)
     return []

@@ -156,3 +156,30 @@ For support and questions:
 - [ ] Payment integration for paid events
 - [ ] Real-time notifications
 - [ ] Multi-language support
+
+## Docker-based development (optional)
+
+This repository includes a simple Docker setup to run the Next.js app and a local Postgres database for development.
+
+Steps:
+
+1. Copy environment template:
+
+```bash
+cp .env.example .env.local
+```
+
+2. Fill `.env.local` with your Supabase URL / anon key or local DB values.
+
+3. Start Docker Compose:
+
+```bash
+docker compose up --build
+```
+
+4. Open the app at http://localhost:3000 (or the port shown by the container).
+
+Notes:
+- The `web` service mounts the repository so code changes are reflected in the container.
+- The included `db` service is a plain Postgres instance; it is not a full Supabase instance. Use a remote Supabase project or run Supabase locally if you need the full suite.
+

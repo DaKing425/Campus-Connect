@@ -45,7 +45,7 @@ export function ClubCard({ club, showFollow = true, onFollow, onUnfollow }: Club
           {club.profile_image_url && (
             <img
               src={club.profile_image_url}
-              alt={club.name}
+              alt={club.name || 'Club image'}
               className="w-16 h-16 object-cover rounded-lg ml-4"
             />
           )}

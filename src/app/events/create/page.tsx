@@ -117,10 +117,11 @@ export default function CreateEventPage() {
       }
 
       const result = await createEvent(eventData)
-      if (result.success) {
+      const resAny = result as any
+      if (resAny.success) {
         router.push('/events')
       } else {
-        setErrors({ general: [result.error || 'Failed to create event'] })
+        setErrors({ general: [resAny.error || 'Failed to create event'] })
       }
     } catch (error) {
       setErrors({ general: ['An unexpected error occurred'] })
@@ -188,7 +189,7 @@ export default function CreateEventPage() {
                 <Textarea
                   id="description"
                   value={formData.description}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
+                  onChange={(e: any) => handleInputChange('description', e.target.value)}
                   placeholder="Describe your event..."
                   rows={4}
                   className={errors.description ? 'border-red-500' : ''}

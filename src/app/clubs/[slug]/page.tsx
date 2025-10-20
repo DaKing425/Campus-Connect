@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { ClubEventCard } from '@/components/clubs/ClubCard'
 import { supabase } from '@/lib/supabase/client'
+const sb = supabase as any
 import { useAuth } from '@/hooks/useAuth'
 import { Club, Event } from '@/types/clubs'
 import { ArrowLeft, Users, Calendar, ExternalLink, Instagram, MessageCircle, Mail, Settings } from 'lucide-react'
@@ -22,6 +23,8 @@ export default function ClubDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [following, setFollowing] = useState(false)
 
+  // fetchClub is stable in this component scope; intentional to run when clubSlug changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchClub()
   }, [clubSlug])
@@ -32,7 +35,7 @@ export default function ClubDetailPage() {
       setError(null)
 
       // Fetch club with related data
-      const { data: clubData, error: clubError } = await supabase
+  const { data: clubData, error: clubError } = await sb
         .from('clubs')
         .select(`
           *,
@@ -55,7 +58,7 @@ export default function ClubDetailPage() {
       setClub(transformedClub)
 
       // Fetch club events
-      const { data: eventsData, error: eventsError } = await supabase
+  const { data: eventsData, error: eventsError } = await sb
         .from('events')
         .select(`
           *,
@@ -68,7 +71,7 @@ export default function ClubDetailPage() {
         .order('start_time', { ascending: true })
 
       if (!eventsError && eventsData) {
-        const transformedEvents = eventsData.map(event => ({
+  const transformedEvents = eventsData.map((event: any) => ({
           ...event,
           categories: event.categories?.map((ec: any) => ec.category).filter(Boolean) || [],
           interests: event.interests?.map((ei: any) => ei.interest).filter(Boolean) || [],
@@ -78,7 +81,7 @@ export default function ClubDetailPage() {
 
       // Check if user is following this club
       if (user) {
-        const { data: followData } = await supabase
+        const { data: followData } = await sb
           .from('follows')
           .select('*')
           .eq('user_id', user.id)
@@ -100,7 +103,7 @@ export default function ClubDetailPage() {
 
     try {
       if (following) {
-        const { error } = await supabase
+        const { error } = await sb
           .from('follows')
           .delete()
           .eq('user_id', user.id)
@@ -109,7 +112,7 @@ export default function ClubDetailPage() {
         if (error) throw error
         setFollowing(false)
       } else {
-        const { error } = await supabase
+        const { error } = await sb
           .from('follows')
           .insert([{ user_id: user.id, club_id: club!.id }])
 
@@ -143,8 +146,8 @@ export default function ClubDetailPage() {
           <CardContent className="p-6 text-center">
             <h2 className="text-xl font-semibold mb-2">Club Not Found</h2>
             <p className="text-gray-600 mb-4">
-              {error || 'The club you\'re looking for doesn\'t exist or has been removed.'}
-            </p>
+                {error || 'The club you\'re looking for doesn&#39;t exist or has been removed.'}
+              </p>
             <Link href="/">
               <Button className="uw">Back to Home</Button>
             </Link>

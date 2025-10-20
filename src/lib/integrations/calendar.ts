@@ -1,4 +1,7 @@
 // Calendar integration utilities for CampusConnect
+// This module uses browser APIs (window, document). Ensure it is only imported from client components.
+"use client"
+
 import { Event } from '@/types/events'
 
 export interface CalendarEvent {
@@ -63,10 +66,11 @@ export function generateICSEvent(event: Event): string {
 }
 
 export function downloadICSFile(event: Event): void {
+  if (typeof document === 'undefined' || typeof window === 'undefined') return
   const icsContent = generateICSEvent(event)
   const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' })
   const url = URL.createObjectURL(blob)
-  
+
   const link = document.createElement('a')
   link.href = url
   link.download = `${event.title.replace(/[^a-z0-9]/gi, '_')}.ics`
@@ -114,13 +118,13 @@ export function generateYahooLink(event: Event): string {
 export function shareToCalendar(event: Event, provider: 'google' | 'outlook' | 'yahoo' | 'ics'): void {
   switch (provider) {
     case 'google':
-      window.open(generateGoogleCalendarLink(event), '_blank')
+  if (typeof window !== 'undefined') window.open(generateGoogleCalendarLink(event), '_blank')
       break
     case 'outlook':
-      window.open(generateOutlookLink(event), '_blank')
+  if (typeof window !== 'undefined') window.open(generateOutlookLink(event), '_blank')
       break
     case 'yahoo':
-      window.open(generateYahooLink(event), '_blank')
+  if (typeof window !== 'undefined') window.open(generateYahooLink(event), '_blank')
       break
     case 'ics':
       downloadICSFile(event)
@@ -161,35 +165,40 @@ export function generateEventShareText(event: Event): string {
     text += `\n${event.description.substring(0, 200)}${event.description.length > 200 ? '...' : ''}\n`
   }
   
-  text += `\nView more details: ${window.location.origin}/events/${event.slug}`
+  const origin = typeof window !== 'undefined' ? window.location.origin : ''
+  text += `\nView more details: ${origin}/events/${event.slug}`
   
   return text
 }
 
 export function shareToSocialMedia(event: Event, platform: 'twitter' | 'facebook' | 'linkedin'): void {
   const text = generateEventShareText(event)
-  const url = `${window.location.origin}/events/${event.slug}`
+  const origin = typeof window !== 'undefined' ? window.location.origin : ''
+  const url = `${origin}/events/${event.slug}`
   
   switch (platform) {
     case 'twitter':
       const twitterText = encodeURIComponent(text.substring(0, 200))
-      window.open(`https://twitter.com/intent/tweet?text=${twitterText}&url=${encodeURIComponent(url)}`, '_blank')
+      if (typeof window !== 'undefined') window.open(`https://twitter.com/intent/tweet?text=${twitterText}&url=${encodeURIComponent(url)}`, '_blank')
       break
     case 'facebook':
-      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank')
+      if (typeof window !== 'undefined') window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank')
       break
     case 'linkedin':
-      window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, '_blank')
+      if (typeof window !== 'undefined') window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, '_blank')
       break
   }
 }
 
 export function copyEventLink(event: Event): Promise<void> {
-  const url = `${window.location.origin}/events/${event.slug}`
-  return navigator.clipboard.writeText(url)
+  const origin = typeof window !== 'undefined' ? window.location.origin : ''
+  const url = `${origin}/events/${event.slug}`
+  if (typeof navigator !== 'undefined' && navigator.clipboard) return navigator.clipboard.writeText(url)
+  return Promise.reject(new Error('Clipboard not available'))
 }
 
 export function generateEventQRCode(event: Event): string {
-  const url = `${window.location.origin}/events/${event.slug}`
+  const origin = typeof window !== 'undefined' ? window.location.origin : ''
+  const url = `${origin}/events/${event.slug}`
   return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`
 }

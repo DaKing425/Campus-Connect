@@ -55,7 +55,7 @@ export function Navbar() {
                     {profile?.avatar_url ? (
                       <img
                         src={profile.avatar_url}
-                        alt={profile.display_name}
+                        alt={profile.display_name || 'User avatar'}
                         className="h-8 w-8 rounded-full"
                       />
                     ) : (

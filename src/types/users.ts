@@ -1,9 +1,22 @@
 // User-related types
+import type { Interest, RSVP } from './common'
+import type { ClubMember } from './clubs'
 export interface User {
   id: string
-  email: string
-  created_at: string
-  last_sign_in_at: string | null
+  email?: string
+  display_name?: string
+  first_name?: string
+  last_name?: string
+  role?: 'student' | 'club_admin' | 'campus_admin' | 'super_admin'
+  graduation_year?: number | null
+  major?: string | null
+  bio?: string | null
+  avatar_url?: string | null
+  is_public?: boolean
+  allow_personalization?: boolean
+  created_at?: string
+  last_sign_in_at?: string | null
+  updated_at?: string
 }
 
 export interface Profile {

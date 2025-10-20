@@ -62,11 +62,11 @@ export function EventCard({ event, showRSVP = true, onRSVP, onCancelRSVP }: Even
           </div>
           
           {event.image_url && (
-            <img
-              src={event.image_url}
-              alt={event.title}
-              className="w-16 h-16 object-cover rounded-lg ml-4"
-            />
+              <img
+                src={event.image_url}
+                alt={event.title || 'Event image'}
+                className="w-16 h-16 object-cover rounded-lg ml-4"
+              />
           )}
         </div>
       </CardHeader>
@@ -81,9 +81,9 @@ export function EventCard({ event, showRSVP = true, onRSVP, onCancelRSVP }: Even
 
         {/* Event Details */}
         <div className="space-y-2">
-          <div className="flex items-center text-sm text-gray-600">
+            <div className="flex items-center text-sm text-gray-600">
             <Calendar className="h-4 w-4 mr-2 text-husky-purple" />
-            <span>{formatEventDateTime(event.start_time, event.timezone)}</span>
+            <span>{formatEventDateTime(event.start_time)}</span>
           </div>
 
           {event.venue && (
@@ -160,7 +160,7 @@ export function EventCard({ event, showRSVP = true, onRSVP, onCancelRSVP }: Even
         {/* Waitlist Position */}
         {userRSVP?.status === 'waitlisted' && userRSVP.waitlist_position && (
           <div className="text-sm text-orange-600 bg-orange-50 p-2 rounded">
-            You're #{userRSVP.waitlist_position} on the waitlist
+            You&#39;re #{userRSVP.waitlist_position} on the waitlist
           </div>
         )}
       </CardContent>

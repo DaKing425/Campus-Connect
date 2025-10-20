@@ -14,13 +14,41 @@ export default function HomePage() {
   const { events, loading, error } = useEvents(filters)
 
   const handleRSVP = async (eventId: string) => {
-    // TODO: Implement RSVP functionality
-    console.log('RSVP to event:', eventId)
+    try {
+      const res = await fetch('/api/events/rsvp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event_id: eventId, status: 'going' }),
+      })
+
+      if (!res.ok) {
+        const json = await res.json()
+        alert(json?.error || 'Failed to RSVP')
+        return
+      }
+
+      // Refresh events
+      // We optimistically refetch events via the hook by changing filters (quick hack)
+      setFilters({ ...filters })
+    } catch (err) {
+      alert('Failed to RSVP')
+    }
   }
 
   const handleCancelRSVP = async (eventId: string) => {
-    // TODO: Implement cancel RSVP functionality
-    console.log('Cancel RSVP for event:', eventId)
+    try {
+      const res = await fetch(`/api/events/rsvp?event_id=${encodeURIComponent(eventId)}`, { method: 'DELETE' })
+
+      if (!res.ok) {
+        const json = await res.json()
+        alert(json?.error || 'Failed to cancel RSVP')
+        return
+      }
+
+      setFilters({ ...filters })
+    } catch (err) {
+      alert('Failed to cancel RSVP')
+    }
   }
 
   const handleFiltersChange = (newFilters: EventFilters) => {

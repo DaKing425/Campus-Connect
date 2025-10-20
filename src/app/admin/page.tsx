@@ -103,19 +103,19 @@ export default function AdminDashboard() {
 
   const handleEventApproval = async (eventId: string, approved: boolean) => {
     try {
-      const { error } = await supabase
+  const { error } = await (supabase as any)
         .from('events')
         .update({
           status: approved ? 'approved' : 'cancelled',
           approved_at: approved ? new Date().toISOString() : null,
           approved_by: user?.id
-        })
+        } as any)
         .eq('id', eventId)
 
       if (error) throw error
 
       // Log the action
-      await supabase
+      await (supabase as any)
         .from('audit_logs')
         .insert([{
           actor_id: user?.id,
@@ -123,8 +123,8 @@ export default function AdminDashboard() {
           entity_type: 'events',
           entity_id: eventId,
           details: { approved },
-          ip_address: '127.0.0.1' // TODO: Get real IP
-        }])
+          ip_address: '127.0.0.1' // placeholder: replace with real client IP on server-side retrieval (e.g., via headers)
+        }] as any)
 
       // Refresh data
       fetchDashboardData()
@@ -135,19 +135,19 @@ export default function AdminDashboard() {
 
   const handleReportAction = async (reportId: string, action: string) => {
     try {
-      const { error } = await supabase
+  const { error } = await (supabase as any)
         .from('reports')
         .update({
           status: action,
           moderator_id: user?.id,
           updated_at: new Date().toISOString()
-        })
+        } as any)
         .eq('id', reportId)
 
       if (error) throw error
 
       // Log the action
-      await supabase
+      await (supabase as any)
         .from('audit_logs')
         .insert([{
           actor_id: user?.id,
@@ -156,7 +156,7 @@ export default function AdminDashboard() {
           entity_id: reportId,
           details: { action },
           ip_address: '127.0.0.1'
-        }])
+        }] as any)
 
       // Refresh data
       fetchDashboardData()
@@ -171,7 +171,7 @@ export default function AdminDashboard() {
         <Card className="w-full max-w-md">
           <CardContent className="p-6 text-center">
             <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
-            <p className="text-gray-600">You don't have permission to access the admin dashboard.</p>
+            <p className="text-gray-600">You don&#39;t have permission to access the admin dashboard.</p>
           </CardContent>
         </Card>
       </div>

@@ -1,37 +1,34 @@
-'use client'
+"use client"
 
 import { useState, useEffect } from 'react'
-import { Profile } from '@/types/users'
+import { User, Profile } from '@/types/users'
 
-// Mock user data
-const mockUser = {
+// Mock user data (partial)
+const mockUser: User = {
   id: 'mock-user-id',
   email: 'student@uw.edu',
   created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString()
+  last_sign_in_at: new Date().toISOString()
 }
 
 const mockProfile: Profile = {
   id: 'mock-user-id',
-  email: 'student@uw.edu',
   display_name: 'UW Student',
-  first_name: 'John',
-  last_name: 'Doe',
-  role: 'student',
-  graduation_year: 2025,
-  major: 'Computer Science',
-  bio: 'Passionate about technology and campus life!',
   avatar_url: null,
-  is_public: true,
-  allow_personalization: true,
+  role: 'student',
+  consent_personalization: true,
+  consent_share_major: false,
+  major: 'Computer Science',
+  class_year: 2025,
   created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString()
+  updated_at: new Date().toISOString(),
+  user: mockUser,
 }
 
 export function useAuth() {
-  const [user, setUser] = useState(mockUser)
+  const [user, setUser] = useState<User | null>(mockUser)
   const [profile, setProfile] = useState<Profile | null>(mockProfile)
-  const [session, setSession] = useState(mockUser)
+  const [session, setSession] = useState<User | null>(mockUser)
   const [loading, setLoading] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(true)
 
@@ -43,7 +40,7 @@ export function useAuth() {
     }, 500)
   }, [])
 
-  const signInWithEmail = async (email: string) => {
+  const signInWithEmail = async (email: string): Promise<{ success: boolean; error?: string }> => {
     setLoading(true)
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000))
@@ -51,7 +48,7 @@ export function useAuth() {
     return { success: true }
   }
 
-  const signOut = async () => {
+  const signOut = async (): Promise<{ success: boolean; error?: string }> => {
     setLoading(true)
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500))
@@ -63,7 +60,7 @@ export function useAuth() {
     return { success: true }
   }
 
-  const updateProfile = async (updates: Partial<Profile>) => {
+  const updateProfile = async (updates: Partial<Profile>): Promise<{ success: boolean; error?: string }> => {
     setLoading(true)
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500))

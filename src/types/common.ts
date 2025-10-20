@@ -1,4 +1,5 @@
 // Common utility types
+// Note: lightweight UI helper types are declared locally to avoid circular imports
 export interface Category {
   id: string
   name: string
@@ -16,10 +17,12 @@ export interface Venue {
   name: string
   room_number: string | null
   address: string | null
-  latitude: number | null
-  longitude: number | null
-  map_url: string | null
-  accessibility_features: string[] | null
+  latitude?: number | null
+  longitude?: number | null
+  map_url?: string | null
+  accessibility_features?: string[] | null
+  capacity?: number | null
+  is_accessible?: boolean
   created_at: string
   updated_at: string
 }
@@ -51,15 +54,12 @@ export interface Notification {
   created_at: string
 }
 
-export interface AuditLog {
+/* AuditLog and Report are defined below with UI helper fields */
+
+// Add optional reporter/actor fields and expose lightweight User helper
+export interface User {
   id: string
-  actor_id: string | null
-  action: string
-  entity_type: string
-  entity_id: string
-  details: any
-  ip_address: string
-  created_at: string
+  display_name?: string
 }
 
 export interface Report {
@@ -73,6 +73,19 @@ export interface Report {
   moderator_notes: string | null
   created_at: string
   updated_at: string
+  reporter?: User
+}
+
+export interface AuditLog {
+  id: string
+  actor_id: string | null
+  action: string
+  entity_type: string
+  entity_id: string
+  details: any
+  ip_address: string
+  created_at: string
+  actor?: User
 }
 
 // API Response types
@@ -106,3 +119,6 @@ export interface FormState<T = any> {
   isSubmitting: boolean
   isDirty: boolean
 }
+
+// Re-export Event type so other files that import from '@/types/common' can access it
+export type { Event } from './events'
